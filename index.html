@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>OpenPGP Utility</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="style/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <link href="style/style.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav-collapse" aria-expanded="false">
+                    <span class="sr-only">Toggle</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+
+            <div class="row collapse navbar-collapse" id="main-nav-collapse">
+                <div class="col-xs-1">
+                </div>
+                <div class="col-xs-10">
+                    <ul class="nav nav-tabs">
+                        <li id="encryptNav" class="active"><a href="#">Encrypt</a></li>
+                        <li id="decryptNav"><a href="#">Decrypt</a></li>
+                        <li id="keysNav" style="display: none; "><a href="#">Public Keys</a></li>
+                        <li id="keypairNav" style="display: none ;"><a href="#">My Keypair</a></li>
+                        <li id="loginForm" style="float: right; ">
+                            <form class="form-inline">
+                                <div class="input-group" id="usernameInputGroup">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-user"></span>
+                                    </span>
+                                    <input type="text" class="form-control" id="usernameInput">
+                                </div>
+                                <div class="input-group" id="passwordInputGroup">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-lock"></span>
+                                    </span>
+                                    <input type="password" class="form-control" id="passwordInput">
+                                </div>
+
+                                <button type="button" class="btn btn-success" id="loginButton">Login</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-xs-1">
+                </div>
+            </div>
+        </nav>
+
+        <div class="row">    
+            <div class="col-xs-1">
+            </div>
+
+            <div id="encrypt" class="col-xs-10" style="display: initial; ">
+                <form>
+                    <h2>Encrypt a Message</h2>
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <div class="form-group">
+                                <label for="inputUnencodedMessage">Message</label>
+                                <textarea class="form-control" rows="8" id="inputUnencodedMessage"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="encodePublicKey">Public Key</label>
+                                <textarea class="form-control" rows="12" id="encodePublicKey"></textarea>
+                            </div>
+                           <button type="button" id="encryptButton" class="btn btn-primary">Encrypt</button>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <div class="form-group">
+                                <label for="outputEncodedMessage">Output</label>
+                                <textarea class="form-control" rows="23" id="outputEncodedMessage"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="decrypt" class="col-xs-10" style="display: none; ">
+                <form>
+                    <h2>Decrypt a Message</h2>
+                    <div class="row">
+                        <div class="col-xs-6">                         
+                            <div class="form-group">
+                                <label for="inputEncodedMessage">Encrypted Message</label>
+                                <textarea class="form-control" rows="10" id="inputEncodedMessage"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="decodePrivateKey">Private Key</label>
+                                <textarea class="form-control" rows="10" id="decodePrivateKey"></textarea>
+                            </div>
+                           <button type="button" id="decryptButton" class="btn btn-primary">Decrypt</button>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <div class="form-group">
+                                <label for="outputDecodedMessage">Output</label>
+                                <textarea class="form-control" rows="23" id="outputDecodedMessage"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="keypair" class="col-xs-10" style="display: none; ">
+                <form>
+                    <h2>My Keypair</h2>
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <div class="form-group">
+                                <label for="outputPublic">Public Key</label>
+                                <textarea class="form-control" rows="22" id="outputPublic" readonly></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <div class="form-group">
+                                <label for="outputPrivate">Private Key</label>
+                                <textarea class="form-control" rows="22" id="outputPrivate" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="keys" class="col-xs-10" style="display: none; ">
+                <form>
+                    <h2>Saved Public Keys</h2>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <select class="form-control" id="keySelect">
+                            </select>
+                            <div class="form-group">
+                                <label for="keyLabel">Label</label>
+                                <input type="text" class="form-control" id="keyLabel">
+                            </div>
+                            <div class="form-group">
+                                <label for="keyContent">Public Key</label>
+                                <textarea class="form-control" rows="18" id="keyContent"></textarea>
+                            </div>
+                            <button type="button" id="saveButton" class="btn btn-primary">Save</button>
+                            <button type="button" id="useButton" class="btn btn-primary">Use</button>
+                            <button type="button" id="delButton" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-xs-1">
+            </div>
+        </div>
+ 
+        <script type="text/javascript" src="scripts/jquery/jquery-2.1.4.min.js"></script>
+        <script type="text/javascript" src="scripts/openpgp/openpgp.min.js"></script>
+        <script type="text/javascript" src="scripts/cryptojs/rollups/sha3.js"></script>
+        <script type="text/javascript" src="scripts/cryptojs/rollups/aes.js"></script>
+        <script type="text/javascript" src="scripts/bootstrap/bootstrap.min.js"></script>
+        <script type="text/javascript" src="scripts/main.js"></script>
+    </body>
+</html>

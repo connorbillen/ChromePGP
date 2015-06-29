@@ -1,0 +1,16 @@
+body {
+    overflow-x: hidden;
+    padding-top: 70px;
+}
+
+textarea {
+    resize: none;
+}
+
+nav {
+    padding-top: 10px;
+}
+
+#delButton {
+    float: right;
+}
