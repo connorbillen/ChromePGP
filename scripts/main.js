@@ -3,6 +3,8 @@ var encryptNav = document.getElementById('encryptNav');
 var decryptNav = document.getElementById('decryptNav');
 var keypairNav = document.getElementById('keypairNav');
 var keysNav = document.getElementById('keysNav');
+var exportNav = document.getElementById('exportNav');
+var importNav = document.getElementById('importNav');
 
 // Associate action buttons with appropriate variables
 var encryptButton = document.getElementById('encryptButton');
@@ -30,9 +32,10 @@ var outputPrivate = document.getElementById('outputPrivate');
 // Initialize container array for saved Public Keys
 var publicKeys = [];
 
-// Alias for accessing OpenPGP library and necessary method calls
+// Alias for accessing OpenPGP library, Chrome app storage
 var openpgp = window.openpgp;
 var storage = chrome.storage.local;
+var fileSystem = chrome.fileSystem;
 
 encryptNav.onclick = function () {
     encryptNav.className = "active";
@@ -82,6 +85,64 @@ keysNav.onclick = function () {
     keys.style.display = "initial";
 };
 
+importNav.onclick = function () {
+    fileSystem.chooseEntry ({
+        type: 'openFile', accepts:[{
+            extensions: ['cpgp']
+        }]
+    }, function (fileEntry) {
+        if (!fileEntry) {
+            console.log("Either a file wasn't selected or an error occurred.");
+        } else {
+            fileEntry.file(function (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var readResult = e.target.result;
+                    var readResults = readResult.split('\n');
+                    storage.set({
+                        'hasAccount': 1,
+                        'username': readResults[0],
+                        'password': readResults[1],
+                        'privateKey': JSON.parse(readResults[2]),
+                        'publicKey': JSON.parse(readResults[3]),
+                        'publicKeys': JSON.parse(readResults[4])
+                    });
+                    loginButton.innerHTML = 'Login';
+                    
+                };
+                reader.readAsText(file);
+            });
+        }
+    });
+};
+
+exportNav.onclick = function () {
+    fileSystem.chooseEntry({type: 'saveFile', suggestedName: 'export.cpgp'},
+        function (fileEntry) {
+            fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function (e) {
+                    console.log('file exported successfully - log: ' + e.toString());
+                };
+                fileWriter.onerror = function (e) {
+                    console.log('error: ' + e.toString());
+                };
+                
+                storage.get(['username', 'password', 'privateKey', 'publicKey', 'publicKeys'], function (result) {
+                    var fileOutput = '';
+                    fileOutput += result.username + '\n';
+                    fileOutput += result.password + '\n';
+                    fileOutput += JSON.stringify(result.privateKey) + '\n';
+                    fileOutput += JSON.stringify(result.publicKey) + '\n';
+                    fileOutput += JSON.stringify(result.publicKeys) + '\n'; 
+                    fileWriter.write(new Blob([fileOutput], {type: 'text/plain'})); 
+                });
+            }, function (e) {
+                alert('error: ' + e.toString());
+            });
+        }
+    );
+};
+
 encryptButton.onclick = function () {
     var key = document.getElementById('encodePublicKey').value;
     var message = document.getElementById('inputUnencodedMessage').value;
@@ -113,6 +174,7 @@ decryptButton.onclick = function () {
         });
     });
 };
+
 saveButton.onclick = function () {
     var tempKey = { label: document.getElementById('keyLabel').value, content: document.getElementById('keyContent').value };
     publicKeys.push(tempKey);
@@ -143,13 +205,19 @@ loginButton.onclick = function () {
 
     storage.get('hasAccount', function (result) {
         if (!result.hasAccount) {
-            storage.set({ 'hasAccount': 1, 'username': CryptoJS.SHA3(username).toString(), 'password': CryptoJS.SHA3(password).toString() });
+            storage.set({
+                'hasAccount': 1, 
+                'username': CryptoJS.SHA3(username).toString(), 
+                'password': CryptoJS.SHA3(password).toString(), 
+                'publicKeys': ''
+            });
             keypairNav.style.display = 'initial';
             keysNav.style.display = 'initial';
+            exportNav.style.display = 'initial';
+            importNav.style.display = 'initial';
             document.getElementById('usernameInputGroup').style.display = 'none';
             document.getElementById('passwordInputGroup').style.display = 'none';
-            loginButton.innerText = 'Logout';
-            loginButton.className = 'btn btn-danger';
+            loginButton.style.display = 'none';
 
             storage.get('password', function (result) {
                 openpgp.generateKeyPair({
@@ -177,6 +245,8 @@ loginButton.onclick = function () {
                     CryptoJS.SHA3(password).toString() == result.password) {
                     keypairNav.style.display = 'initial';
                     keysNav.style.display = 'initial';
+                    exportNav.style.display = 'initial';
+                    importNav.style.display = 'initial';
                     document.getElementById('usernameInputGroup').style.display = 'none';
                     document.getElementById('passwordInputGroup').style.display = 'none';
                     loginButton.style.display = 'none';
