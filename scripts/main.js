@@ -32,7 +32,7 @@ var outputPrivate = document.getElementById('outputPrivate');
 // Initialize container array for saved Public Keys
 var publicKeys = [];
 
-// Alias for accessing OpenPGP library, Chrome app storage
+// Alias for accessing OpenPGP library, Chrome app storage, Chrome filesystem access
 var openpgp = window.openpgp;
 var storage = chrome.storage.local;
 var fileSystem = chrome.fileSystem;
@@ -219,25 +219,23 @@ loginButton.onclick = function () {
             document.getElementById('passwordInputGroup').style.display = 'none';
             loginButton.style.display = 'none';
 
-            storage.get('password', function (result) {
-                openpgp.generateKeyPair({
-                    numBits: 2048,
-                    userId: usernameInput.value,
-                    passphrase: result.password
-                }).then(function (keypair) {
-                    var publicKey = keypair.publicKeyArmored;
-                    var privateKey = keypair.privateKeyArmored;
+            openpgp.generateKeyPair({
+                numBits: 2048,
+                userId: usernameInput.value,
+                passphrase: result.password
+            }).then(function (keypair) {
+                var publicKey = keypair.publicKeyArmored;
+                var privateKey = keypair.privateKeyArmored;
 
-                    var encryptedPublicKey = CryptoJS.AES.encrypt(publicKey, result.password);
-                    var encryptedPrivateKey = CryptoJS.AES.encrypt(privateKey, result.password);
-                    outputPublic.value = publicKey;
-                    outputPrivate.value = privateKey;
+                var encryptedPublicKey = CryptoJS.AES.encrypt(publicKey, passwordInput.value);
+                var encryptedPrivateKey = CryptoJS.AES.encrypt(privateKey, passwordInput.value);
+                outputPublic.value = publicKey;
+                outputPrivate.value = privateKey;
 
-                    storage.set({ 'publicKey': encryptedPublicKey }); 
-                    storage.set({ 'privateKey': encryptedPrivateKey });
-                }).catch(function (error) {
-                    console.log(error);
-                });
+                storage.set({ 'publicKey': encryptedPublicKey }); 
+                storage.set({ 'privateKey': encryptedPrivateKey });
+            }).catch(function (error) {
+                console.log(error);
             });
         } else {
             storage.get(['username', 'password'], function (result) {
@@ -252,11 +250,11 @@ loginButton.onclick = function () {
                     loginButton.style.display = 'none';
 
                     storage.get(['publicKey', 'password'], function (result) {
-                        outputPublic.value = CryptoJS.AES.decrypt(result.publicKey, result.password, { iv: result.publicKey.iv }).toString(CryptoJS.enc.Utf8);
+                        outputPublic.value = CryptoJS.AES.decrypt(result.publicKey, passwordInput.value, { iv: result.publicKey.iv }).toString(CryptoJS.enc.Utf8);
                     });
 
                     storage.get(['privateKey', 'password'], function (result) {
-                        outputPrivate.value = CryptoJS.AES.decrypt(result.privateKey, result.password, { iv: result.privateKey.iv }).toString(CryptoJS.enc.Utf8);
+                        outputPrivate.value = CryptoJS.AES.decrypt(result.privateKey, passwordInput.value, { iv: result.privateKey.iv }).toString(CryptoJS.enc.Utf8);
                     });
                 }
             });
@@ -274,7 +272,7 @@ keySelect.onchange = function () {
 
 window.onload = function () {
     storage.get('publicKeys', function (result) {
-        if (result.publicKeys) {
+        if (result.publicKeys !== '') {
             publicKeys = result.publicKeys;
             for (var i = 0; i < publicKeys.length; i++) {
                 var tempOption = document.createElement('option');
